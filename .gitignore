@@ -1,2 +1,4 @@
 mocks
 mockery.prof
+/.idea/
+/mockery.iml
