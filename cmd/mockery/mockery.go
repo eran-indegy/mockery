@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/vektra/mockery/mockery"
+	"github.com/eran-indegy/mockery/mockery"
 	"runtime/pprof"
 	"syscall"
 )

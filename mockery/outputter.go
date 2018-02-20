@@ -1,12 +1,15 @@
 package mockery
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"bufio"
 )
 
 type Cleanup func() error
@@ -29,6 +32,11 @@ type FileOutputStreamProvider struct {
 	Case      string
 }
 
+var (
+	hasher        = regexp.MustCompile(`hash\:([0-9a-f]*);`)
+	NotChangedErr = errors.New("interface didn't change skipping")
+)
+
 func (this *FileOutputStreamProvider) GetWriter(iface *Interface, pkg string) (io.Writer, error, Cleanup) {
 	var path string
 
@@ -45,12 +53,28 @@ func (this *FileOutputStreamProvider) GetWriter(iface *Interface, pkg string) (i
 		pkg = filepath.Base(filepath.Dir(path))
 	}
 
+	f, err := os.Open(path)
+	if err == nil {
+		r := bufio.NewReader(f)
+		line, _, err := r.ReadLine()
+		if err == nil {
+			match := hasher.FindSubmatch(line)
+			if match != nil {
+				if string(match[1]) ==  iface.Hash {
+					f.Close()
+					return nil, NotChangedErr, func() error { return nil }
+				}
+			}
+		}
+		f.Close()
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
 		return nil, err, func() error { return nil }
 	}
 
-	fmt.Printf("Generating mock for: %s\n", iface.Name)
+	fmt.Printf("Generating mock for: %s.%s\n", iface.Pkg.Name(), iface.Name)
 	return f, nil, func() error {
 		return f.Close()
 	}

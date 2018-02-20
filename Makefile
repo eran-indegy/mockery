@@ -18,7 +18,7 @@ install:
 	go install ./...
 
 integration:
-	rm -rf mocks
+	#rm -rf mocks
 	${GOPATH}/bin/mockery -all -recursive -cpuprofile="mockery.prof" -dir="mockery/fixtures"
 	if [ ! -d "mocks" ]; then \
 		echo "No Mock Dir Created"; \

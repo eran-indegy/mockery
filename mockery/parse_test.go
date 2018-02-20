@@ -3,6 +3,7 @@ package mockery
 import (
 	"testing"
 
+	"fmt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,6 +27,7 @@ func TestFileParse(t *testing.T) {
 	node, err := parser.Find("Requester")
 	assert.NoError(t, err)
 	assert.NotNil(t, node)
+	fmt.Println(node.Hash)
 }
 
 func noTestFileInterfaces(t *testing.T) {

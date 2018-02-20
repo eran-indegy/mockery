@@ -13,6 +13,8 @@ import (
 	"sync"
 
 	"golang.org/x/tools/go/loader"
+	"hash/fnv"
+	"strconv"
 )
 
 type Parser struct {
@@ -190,6 +192,7 @@ type Interface struct {
 	Pkg       *types.Package
 	Type      *types.Interface
 	NamedType *types.Named
+	Hash      string
 }
 
 type sortableIFaceList []*Interface
@@ -249,10 +252,21 @@ func (p *Parser) packageInterfaces(pkg *types.Package, file *ast.File, declaredI
 			Type:      iface.Complete(),
 			NamedType: typ,
 			File:      file,
+			Hash:      generateHash(iface),
 		}
 
 		ifaces = append(ifaces, elem)
 	}
 
 	return ifaces
+}
+func generateHash(iface *types.Interface) string {
+	h := fnv.New64a()
+	for i := 0; i < iface.NumMethods(); i++ {
+		fn := iface.Method(i)
+		h.Write([]byte(fn.FullName()))
+		h.Write([]byte(fn.Type().String()))
+	}
+	hash := h.Sum64()
+	return strconv.FormatUint(hash, 16)
 }

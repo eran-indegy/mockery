@@ -113,13 +113,17 @@ func (this *GeneratorVisitor) VisitWalk(iface *Interface) error {
 
 	out, err, closer := this.Osp.GetWriter(iface, pkg)
 	if err != nil {
+		if err == NotChangedErr {
+			fmt.Printf("skipping not changed interface: %s.%s\n", iface.Pkg.Name(), iface.Name)
+			return nil
+		}
 		fmt.Printf("Unable to get writer for %s: %s", iface.Name, err)
 		os.Exit(1)
 	}
 	defer closer()
 
 	gen := NewGenerator(iface, pkg, this.InPackage)
-	gen.GeneratePrologueNote(this.Note)
+	gen.GeneratePrologueNote(iface.Hash, this.Note)
 	gen.GeneratePrologue(pkg)
 
 	err = gen.Generate()
